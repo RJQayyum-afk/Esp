@@ -1,0 +1,173 @@
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+local OWNER_USER_ID = 123456789 -- Replace with your UserId
+
+if LocalPlayer.UserId ~= OWNER_USER_ID then
+
+    return
+
+end
+
+local Rayfield = loadstring(game:HttpGet(
+
+    "https://sirius.menu/rayfield"
+
+))()
+
+local Window = Rayfield:CreateWindow({
+
+    Name = "Owner Hub",
+
+    LoadingTitle = "Player Highlights",
+
+    LoadingSubtitle = "Owner Only",
+
+    ConfigurationSaving = {
+
+        Enabled = false
+
+    }
+
+})
+
+local Tab = Window:CreateTab("Highlights", 4483362458)
+
+local selectedPlayer
+
+local enabled = false
+
+local color = Color3.fromRGB(255, 0, 0)
+
+local highlights = {}
+
+local function clearHighlight(target)
+
+    if highlights[target] then
+
+        highlights[target]:Destroy()
+
+        highlights[target] = nil
+
+    end
+
+end
+
+local function applyHighlight(target)
+
+    clearHighlight(target)
+
+    if not enabled or not target.Character then
+
+        return
+
+    end
+
+    local h = Instance.new("Highlight")
+
+    h.Adornee = target.Character
+
+    h.FillColor = color
+
+    h.OutlineColor = Color3.new(1, 1, 1)
+
+    h.FillTransparency = 0.5
+
+    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+
+    h.Parent = target.Character
+
+    highlights[target] = h
+
+end
+
+local function getNames()
+
+    local names = {}
+
+    for _, target in ipairs(Players:GetPlayers()) do
+
+        if target ~= LocalPlayer then
+
+            table.insert(names, target.Name)
+
+        end
+
+    end
+
+    table.sort(names)
+
+    return names
+
+end
+
+Tab:CreateDropdown({
+
+    Name = "Select Player",
+
+    Options = getNames(),
+
+    CurrentOption = {},
+
+    MultipleOptions = false,
+
+    Callback = function(option)
+
+        selectedPlayer = Players:FindFirstChild(option[1])
+
+        if enabled and selectedPlayer then
+
+            applyHighlight(selectedPlayer)
+
+        end
+
+    end
+
+})
+
+Tab:CreateToggle({
+
+    Name = "Enable Highlight",
+
+    CurrentValue = false,
+
+    Callback = function(value)
+
+        enabled = value
+
+        for target in pairs(highlights) do
+
+            clearHighlight(target)
+
+        end
+
+        if enabled and selectedPlayer then
+
+            applyHighlight(selectedPlayer)
+
+        end
+
+    end
+
+})
+
+Tab:CreateColorPicker({
+
+    Name = "Highlight Color",
+
+    Color = color,
+
+    Callback = function(value)
+
+        color = value
+
+        if enabled and selectedPlayer then
+
+            applyHighlight(selectedPlayer)
+
+        end
+
+    end
+
+})
